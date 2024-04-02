@@ -1,0 +1,12 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    display: block;
+}
+.myProduct {
+    border: 2px solid green;
+}
+.myProductComment {
+    border: 12px solid gray;
+}
