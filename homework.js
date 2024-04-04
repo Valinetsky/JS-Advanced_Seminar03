@@ -95,12 +95,22 @@ const initialData = [
 ];
 
 const productDiv = document.getElementById("goods");
+
 productDiv.onclick = function (event) {
     console.log(event.target.dataset.index);
+    const productReviewCounter = event.target.dataset.index;
     const actionType = event.target.dataset.type;
     if (actionType === "delete") {
         console.log("---");
-        deleteCommentary(event.target.dataset.index);
+        if (!deleteCommentary(event.target.dataset.index)) {
+            console.log("No more commet --- remove details");
+            console.log(productDiv.innerHTML);
+            productDiv.innerHTML = productDiv.innerHTML.replace(
+                /<details*><summary>|<\/summary>*<\/details>/gi,
+                ""
+            );
+            console.log(productDiv.innerHTML);
+        }
         event.target.parentElement.remove();
     }
     if (actionType === "add") {
@@ -136,7 +146,8 @@ function render() {
 					<h2 class='product__head'>${element.product}</h2>
                 </summary>
         `;
-        let reviewIndex = 0;
+        let reviewIndex = -1;
+        console.log("element.reviews.length", element.reviews.length);
         for (const review of element.reviews) {
             productHTML += `
                 <div class='product__commentary' id='commentary${review.id}'>${
@@ -148,11 +159,13 @@ function render() {
                 </div>`;
             reviewIndex++;
         }
-        // Работаем здесь!
-        if (reviewIndex === 0) {
-            productHTML = productHTML.replace("</?summary>", "");
-            console.log(productHTML);
-        }
+        // // Работаем здесь!
+        // console.log("reviewIndex", reviewIndex);
+        // if (reviewIndex === -1) {
+        //     productHTML = productHTML.replace(/<summary>(.*?)<\/summary>/g, "");
+
+        //     console.log(productHTML);
+        // }
         productHTML += `
             </details>
             <button class='product__button add' data-index=${index} data-type='add'>Ваш комментарий</button>
@@ -168,11 +181,26 @@ function getProductAndReviewIndex(string) {
 function deleteCommentary(string) {
     const productIndex = getProductAndReviewIndex(string)[0];
     const commentaryIndex = getProductAndReviewIndex(string)[1];
-    initialData[productIndex].reviews.splice(commentaryIndex, 1);
+    const commentToRemove = initialData[productIndex].reviews;
+    commentToRemove.splice(commentaryIndex, 1);
+    if (commentToRemove.length === 0) {
+        return false;
+    }
+    return true;
 }
 
-let myString = "12-33";
-console.log(getProductAndReviewIndex(myString));
+function removeDetails(string) {
+    replace(/<summary>(.*?)<\/summary>/g, "");
+}
+
+let myString =
+    "<details open><summary>Должно <>остаться!!!</summary></details>";
+console.log(
+    myString.replace(/<details open><summary>|<\/summary><\/details>/gi, "")
+);
+
+// let myString = "12-33";
+// console.log(getProductAndReviewIndex(myString));
 
 // // Получение элементов DOM
 // const reviewForm = document.getElementById("review-form");
