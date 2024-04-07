@@ -92,7 +92,7 @@ let initialData = [
 ];
 
 // Очистка localstorage
-localStorage.removeItem("user");
+// localStorage.removeItem("user");
 
 // Если localStorage пуст — помещаем в него initialData
 // Если не пуст, помещаем его значение в initialData
