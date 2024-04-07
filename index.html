@@ -8,14 +8,15 @@
         <script src="homework.js" defer></script>
     </head>
     <body>
-        <div class="goods" id="goods">123</div>
-        <h1>Отзывы о продуктах</h1>
+        <h1>Каталог продуктов</h1>
+
         <div class="goods" id="goods">
+            <!-- Макетирование продукта -->
             <!-- <div class="product" id="product0">
                 <details>
-                    <summary>
-                        <h2 class="product__head">Apple iPhone 13</h2>
-                    </summary>
+				<summary>
+					<h2 class='product__head'>${element.product + " "}<span>Комментариев${" " + element.reviews.length}</span></h2>
+                </summary>`;
                     <div class="product__commentary" id="commentary1">
                         Отличный телефон! Батарея держится долго.
                         <button class="product__button">Удалить</button>
@@ -25,11 +26,37 @@
                         <button class="product__button">Удалить</button>
                     </div>
                 </details>
+                <button class='product__button add' data-index=${index} data-type='add'>
+                Ваш комментарий
+            </button>
             </div> -->
         </div>
-
-        <input type="text" class="form" placeholder="Название продукта" />
-        <input type="text" class="form" placeholder="Ваш комментарий" />
+        <h3>Создать отзыв</h3>
+        <form id="formBox" action="/apply/" method="POST">
+            <label>
+                Название продукта:
+                <input
+                    type="text"
+                    class="form"
+                    placeholder="Название продукта"
+                    name="product"
+                    id="formProduct"
+                    required
+                />
+            </label>
+            <label>
+                Ваш комментарий:
+                <input
+                    type="text"
+                    class="form"
+                    placeholder="Ваш комментарий"
+                    name="commentary"
+                    id="formCommentary"
+                    required
+                />
+            </label>
+            <button type="submit">Отправить комментарий</button>
+        </form>
 
         <!-- добавления отзыва -->
 

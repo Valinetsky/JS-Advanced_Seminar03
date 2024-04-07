@@ -15,9 +15,9 @@
 При клике на название продукта отображается список всех отзывов по этому продукту.
 Возможность удаления отзыва (при нажатии на кнопку "Удалить" рядом с отзывом, данный отзыв удаляется из LocalStorage).
 
-Здесь может пригодиться странный код из предыдущего ДЗ.
+------------------------------------------------------------------
+Замечание: здесь может пригодиться странный код из предыдущего ДЗ.
 
-```js
 const initialData = [
     {
         product: "Apple iPhone 13",
@@ -51,16 +51,13 @@ const initialData = [
         ],
     },
 ];
-```
+------------------------------------------------------------------
 
 Вы можете использовать этот массив initialData для начальной загрузки данных при запуске вашего приложения.
-
-### Замечание
-
-Видимо, этот блок кода попал в задание 2 ненароком.
 */
 
-const initialData = [
+// Некий начальный массив продуктов и комментариев к ним
+let initialData = [
     {
         product: "Apple iPhone 13",
         reviews: [
@@ -94,35 +91,53 @@ const initialData = [
     },
 ];
 
-const productDiv = document.getElementById("goods");
+// Очистка localstorage
+localStorage.removeItem("user");
 
+// Если localStorage пуст — помещаем в него initialData
+// Если не пуст, помещаем его значение в initialData
+if (localStorage.getItem("user") === null) {
+    localStorage.setItem("user", JSON.stringify(initialData));
+} else {
+    initialData = JSON.parse(localStorage.getItem("user"));
+}
+
+// Считаем максимальный ID комментариев
+// Он понадобится для добавления нового комментария с уникальным ID
+let maxId = getMaxIdCommentary();
+
+// Получаем объекты: блок продуктов, форму, ее элементы
+const productDiv = document.getElementById("goods");
+const appForm = document.getElementById("formBox");
+const productForm = document.getElementById("formProduct");
+const productCommentary = document.getElementById("formCommentary");
+
+// Добавляем слушателя для кнопки формы
+appForm.addEventListener("submit", handleFormSubmit);
+
+// Слушаем клики в блоке продуктов
 productDiv.onclick = function (event) {
-    console.log(event.target.dataset.index);
-    const productReviewCounter = event.target.dataset.index;
+    const productCounter = event.target.dataset.index;
     const actionType = event.target.dataset.type;
+    // Удаляем конкретный комментарий из конкретного продукта
+    // Регенерируем блок продуктов
     if (actionType === "delete") {
-        console.log("---");
-        if (!deleteCommentary(event.target.dataset.index)) {
-            console.log("No more commet --- remove details");
-            console.log(productDiv.innerHTML);
-            productDiv.innerHTML = productDiv.innerHTML.replace(
-                /<details*><summary>|<\/summary>*<\/details>/gi,
-                ""
-            );
-            console.log(productDiv.innerHTML);
-        }
+        deleteCommentary(event.target.dataset.index);
         event.target.parentElement.remove();
+        render();
     }
+    // Помещаем название конкретного продукта в поле "Название продукта"
+    // Смещаем фокус на поле "Ваш комментарий"
     if (actionType === "add") {
-        console.log("+++");
+        productForm.value = initialData[productCounter].product;
+        productCommentary.focus();
     }
 };
 
+// Регенерируем блок продуктов
 render();
 
-let curretCommentID = getMaxIdCommentary();
-console.log(curretCommentID);
-
+// Функция нахождения максимального ID среди всех комментариев
 function getMaxIdCommentary() {
     let maxId = 1;
     initialData.forEach(function (element) {
@@ -132,52 +147,62 @@ function getMaxIdCommentary() {
             }
         }
     });
-    return maxId;
+    return maxId + 1;
 }
 
+// Функция сборки HTML для блока продуктов из массива initialData
+// Последним действием регенерируем localStorage
 function render() {
     productDiv.innerHTML = "";
     let productHTML = "";
     initialData.forEach(function (element, index) {
         productHTML += `
 		<div class='product' id='product${index}'>
-			<details>
-				<summary>
-					<h2 class='product__head'>${element.product}</h2>
-                </summary>
         `;
-        let reviewIndex = -1;
-        console.log("element.reviews.length", element.reviews.length);
-        for (const review of element.reviews) {
+        if (element.reviews.length) {
+            let reviewIndex = -1;
             productHTML += `
-                <div class='product__commentary' id='commentary${review.id}'>${
-                review.text
-            } 
-                    <button class='product__button delete' data-index=${
-                        index + `-` + reviewIndex
-                    } data-type='delete'>Удалить</button>
-                </div>`;
-            reviewIndex++;
+            <details>
+				<summary>
+					<h2 class='product__head'>${element.product + " "}<span>Комментариев${
+                " " + element.reviews.length
+            }</span></h2>
+                </summary>`;
+            for (const review of element.reviews) {
+                productHTML += `
+			<div class='product__commentary' id='commentary${review.id}'>
+				${review.text} 
+				<button class='product__button delete' data-index=${
+                    index + "-" + reviewIndex
+                } data-type='delete'>
+                    Удалить
+                </button>
+			</div>`;
+                reviewIndex++;
+            }
+            productHTML += "</details>";
+        } else {
+            productHTML += `
+            <h2 class='product__head'>${element.product}</h2>
+        `;
         }
-        // // Работаем здесь!
-        // console.log("reviewIndex", reviewIndex);
-        // if (reviewIndex === -1) {
-        //     productHTML = productHTML.replace(/<summary>(.*?)<\/summary>/g, "");
-
-        //     console.log(productHTML);
-        // }
         productHTML += `
-            </details>
-            <button class='product__button add' data-index=${index} data-type='add'>Ваш комментарий</button>
+            <button class='product__button add' data-index=${index} data-type='add'>
+                Ваш комментарий
+            </button>
         </div>`;
     });
     productDiv.innerHTML += productHTML;
+    // Обновляем localStarage
+    localStorage.setItem("user", JSON.stringify(initialData));
 }
 
+// Функция, возвращающая массив: [0] — индекс продукта, [1] — индекст комментария к нему
 function getProductAndReviewIndex(string) {
     return string.split("-").map((x) => Number.parseInt(x));
 }
 
+// Функция, удаляющая комментарий из продукта
 function deleteCommentary(string) {
     const productIndex = getProductAndReviewIndex(string)[0];
     const commentaryIndex = getProductAndReviewIndex(string)[1];
@@ -189,149 +214,29 @@ function deleteCommentary(string) {
     return true;
 }
 
-function removeDetails(string) {
-    replace(/<summary>(.*?)<\/summary>/g, "");
+// Функция, сериализирующая информацию, полученную из формы
+function serializeForm(formNode) {
+    const formData = new FormData(formNode);
+    return formData;
 }
 
-let myString =
-    "<details open><summary>Должно <>остаться!!!</summary></details>";
-console.log(
-    myString.replace(/<details open><summary>|<\/summary><\/details>/gi, "")
-);
-
-// let myString = "12-33";
-// console.log(getProductAndReviewIndex(myString));
-
-// // Получение элементов DOM
-// const reviewForm = document.getElementById("review-form");
-// const productList = document.getElementById("product-list");
-
-// // Обработчик отправки формы
-// reviewForm.addEventListener("submit", function (event) {
-//     event.preventDefault();
-
-//     // Получение значений полей формы
-//     const productName = document.getElementById("product-name").value;
-//     const reviewText = document.getElementById("review-text").value;
-
-//     // Создание объекта отзыва
-//     const review = {
-//         product: productName,
-//         text: reviewText,
-//     };
-
-//     // Получение текущих отзывов из LocalStorage
-//     let reviews = JSON.parse(localStorage.getItem("reviews")) || [];
-
-//     // Добавление нового отзыва
-//     reviews.push(review);
-
-//     // Сохранение отзывов в LocalStorage
-//     localStorage.setItem("reviews", JSON.stringify(reviews));
-
-//     // Очистка полей формы
-//     document.getElementById("product-name").value = "";
-//     document.getElementById("review-text").value = "";
-
-//     // Обновление списка отзывов
-//     displayProductList();
-// });
-
-// // Функция отображения списка продуктов
-// function displayProductList() {
-//     // Очистка списка
-//     productList.innerHTML = "";
-
-//     // Получение текущих отзывов из LocalStorage
-//     let reviews = JSON.parse(localStorage.getItem("reviews")) || [];
-
-//     // Получение уникальных названий продуктов
-//     let products = [...new Set(reviews.map((review) => review.product))];
-
-//     // Отображение списка продуктов
-//     products.forEach((product) => {
-//         const productElement = document.createElement("details");
-//         productElement.classList.add("product-list");
-
-//         const summaryElement = document.createElement("summary");
-//         summaryElement.textContent = product;
-//         productElement.appendChild(summaryElement);
-
-//         const reviewsContainer = document.createElement("div");
-
-//         // Обработчик клика на название продукта
-//         summaryElement.addEventListener("click", function () {
-//             // Отображение отзывов по выбранному продукту
-//             displayReviews(product, reviewsContainer);
-//         });
-
-//         productElement.appendChild(reviewsContainer);
-//         productList.appendChild(productElement);
-//     });
-// }
-
-// // Функция отображения отзывов по выбранному продукту
-// function displayReviews(product, container) {
-//     // Очистка контейнера отзывов
-//     container.innerHTML = "";
-
-//     // Получение текущих отзывов из LocalStorage
-//     let reviews = JSON.parse(localStorage.getItem("reviews")) || [];
-
-//     // Фильтрация отзывов по выбранному продукту
-//     let filteredReviews = reviews.filter(
-//         (review) => review.product === product
-//     );
-
-//     // Отображение отзывов
-//     filteredReviews.forEach((review) => {
-//         const reviewElement = document.createElement("div");
-//         reviewElement.classList.add("review");
-
-//         const productName = document.createElement("h3");
-//         productName.textContent = review.product;
-//         reviewElement.appendChild(productName);
-
-//         const reviewText = document.createElement("p");
-//         reviewText.textContent = review.text;
-//         reviewElement.appendChild(reviewText);
-
-//         const deleteButton = document.createElement("span");
-//         deleteButton.classList.add("delete-button");
-//         deleteButton.textContent = "Удалить";
-//         reviewElement.appendChild(deleteButton);
-
-//         // Обработчик клика на кнопку "Удалить"
-//         deleteButton.addEventListener("click", function () {
-//             // Удаление отзыва
-//             deleteReview(review);
-
-//             // Обновление списка отзывов
-//             displayReviews(product, container);
-//         });
-
-//         container.appendChild(reviewElement);
-//     });
-// }
-
-// // Функция удаления отзыва
-// function deleteReview(review) {
-//     // Получение текущих отзывов из LocalStorage
-//     let reviews = JSON.parse(localStorage.getItem("reviews")) || [];
-
-//     // Поиск индекса отзыва в массиве
-//     const index = reviews.findIndex(
-//         (r) => r.product === review.product && r.text === review.text
-//     );
-
-//     // Удаление отзыва из массива
-//     if (index !== -1) {
-//         reviews.splice(index, 1);
-//     }
-
-//     // Сохранение отзывов в LocalStorage
-//     localStorage.setItem("reviews", JSON.stringify(reviews));
-// }
-
-// // Инициализация страницы
-// displayProductList();
+// Функция, обрабатывающая нажатие кнопки "Отправить" в форме
+function handleFormSubmit(event) {
+    event.preventDefault();
+    const getProduct = serializeForm(appForm).get("product");
+    const getCommentary = serializeForm(appForm).get("commentary");
+    const foundItem = initialData.findIndex(
+        (obj) => obj.product === getProduct
+    );
+    if (foundItem !== -1) {
+        initialData[foundItem].reviews.push({
+            id: maxId,
+            text: getCommentary,
+        });
+        maxId++;
+        render();
+    } else {
+        // Продукт не найден, о чем и сообщаем
+        alert(`Продукта ${getProduct} нет в каталоге`);
+    }
+}

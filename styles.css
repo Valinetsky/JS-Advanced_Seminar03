@@ -12,6 +12,10 @@ body {
 	margin: 1rem;
 }
 
+span {
+	font-size: 10px;
+}
+
 .product {
 	border: 1px solid #226daa;
 	padding: 5px;
@@ -33,7 +37,7 @@ details>summary {
 
 	border: 1px #ccc solid;
 	cursor: pointer;
-	list-style: none;
+	list-style-type: none;
 }
 
 details>div {
